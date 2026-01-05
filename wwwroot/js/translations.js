@@ -37,7 +37,8 @@
         lead: "Олово",
         titanium: "Титан",
         nickel: "Никел",
-        brass: "Месинг"
+        brass: "Месинг",
+        weight: "Тегло"
     },
     en: {
         pageTitle: "Metal Weight Calculator",
@@ -77,7 +78,8 @@
         lead: "Lead",
         titanium: "Titanium",
         nickel: "Nickel",
-        brass: "Brass"
+        brass: "Brass",
+        weight: "Weight"
     },
     ru: {
         pageTitle: "Калькулятор веса металла",
@@ -117,7 +119,8 @@
         lead: "Свинец",
         titanium: "Титан",
         nickel: "Никель",
-        brass: "Латунь"
+        brass: "Латунь",
+        weight: "Вес"
     },
     tr: {
         pageTitle: "Metal Ağırlık Hesaplayıcı",
@@ -157,7 +160,8 @@
         lead: "Kurşun",
         titanium: "Titanyum",
         nickel: "Nikel",
-        brass: "Pirinç"
+        brass: "Pirinç",
+        weight: "Ağırlık"
     },
     de: {
         pageTitle: "Metallgewicht-Rechner",
@@ -197,7 +201,8 @@
         lead: "Blei",
         titanium: "Titan",
         nickel: "Nickel",
-        brass: "Messing"
+        brass: "Messing",
+        weight: "Gewicht"
     },
     el: {
         pageTitle: "Υπολογιστής βάρους μετάλλων",
@@ -237,7 +242,8 @@
         lead: "Μόλυβδος",
         titanium: "Τιτάνιο",
         nickel: "Νικέλιο",
-        brass: "Ορείχαλκος"
+        brass: "Ορείχαλκος",
+        weight: "Βάρος"
     },
     ro: {
         pageTitle: "Calculator greutate metalelor",
@@ -277,6 +283,7 @@
         lead: "Plumb",
         titanium: "Titan",
         nickel: "Nichel",
-        brass: "Alamă"
+        brass: "Alamă",
+        weight: "Greutate"
     }
 };

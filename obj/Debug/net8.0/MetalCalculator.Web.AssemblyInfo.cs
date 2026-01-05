@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MetalCalculator.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+582a4c234f59e737209ee81f295ff375d1b44278")]
 [assembly: System.Reflection.AssemblyProductAttribute("MetalCalculator.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MetalCalculator.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

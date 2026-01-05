@@ -11,7 +11,7 @@ wwwroot\diagrams\squarePipe.png
 wwwroot\diagrams\strip.png
 wwwroot\diagrams\wire.png
 wwwroot\favicon.ico
-wwwroot\js\translations.js
+wwwroot\js\site.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
@@ -69,4 +69,4 @@ wwwroot\lib\jquery\dist\jquery.js
 wwwroot\lib\jquery\dist\jquery.min.js
 wwwroot\lib\jquery\dist\jquery.min.map
 wwwroot\lib\jquery\LICENSE.txt
-wwwroot\js\site.js
+wwwroot\js\translations.js

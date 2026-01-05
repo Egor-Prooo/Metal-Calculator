@@ -6,7 +6,7 @@ function onProductChange(product) {
     const inputArea = document.getElementById("dynamicInputs");
 
     if (!product) {
-        diagramTitle.textContent = "Моля изберете продукт";
+        diagramTitle.textContent = translations[currentLanguage].pleaseSelectProduct;
         diagramImage.src = "";
         diagramImage.style.display = "none";
         inputArea.innerHTML = "";
@@ -14,109 +14,81 @@ function onProductChange(product) {
         return;
     }
 
-    const titles = {
-        wire: "Диаграма: Тел/катанка",
-        square: "Диаграма: Квадрат",
-        hexagon: "Диаграма: Шестоъгълник",
-        corner: "Диаграма: Ъглов профил",
-        sheet: "Диаграма: Лист",
-        pipe: "Диаграма: Кръгла тръба",
-        squarePipe: "Диаграма: Квадратна тръба",
-        channel: "Диаграма: П-профил",
-        strip: "Диаграма: Лента",
-        flatbar: "Диаграма: Шина",
-        beam: "Диаграма: HEA"
-    };
-
-    const imagePaths = {
-        wire: "/diagrams/wire.png",
-        square: "/diagrams/square.png",
-        hexagon: "/diagrams/hexagon.png",
-        corner: "/diagrams/corner.png",
-        sheet: "/diagrams/sheet.png",
-        pipe: "/diagrams/pipe.png",
-        squarePipe: "/diagrams/squarePipe.png",
-        channel: "/diagrams/channel.png",
-        strip: "/diagrams/strip.png",
-        flatbar: "/diagrams/flatbar.png",
-        beam: "/diagrams/beam.png"
-    };
-
-    diagramTitle.textContent = titles[product] || "Диаграма";
     diagramImage.src = `/diagrams/${product}.png`;
     diagramImage.style.display = "block";
 
     let inputs = "";
     switch (product) {
         case "wire":
-            inputs += `<label data-translate="diameter">Диаметър (mm):</label><input type="text" id="diameter" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="length">Дължина (m):</label><input type="text" id="length" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="amount">Количество:</label><input type="text" id="amount" class="form-control" autocomplete="off"/>`;
+            inputs += `<div class="form-group"><label data-translate="diameter">Диаметър (mm):</label><input type="number" id="diameter" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="length">Дължина (m):</label><input type="number" id="length" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="amount">Количество:</label><input type="number" id="amount" class="form-control" autocomplete="off"/></div>`;
             break;
         case "pipe":
-            inputs += `<label data-translate="diameter">Диаметър (mm):</label><input type="text" id="diameter" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="wallThickness">Дебелина на стената (mm):</label><input type="text" id="wallThickness" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="length">Дължина (m):</label><input type="text" id="length" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="amount">Количество:</label><input type="text" id="amount" class="form-control" autocomplete="off"/>`;
+            inputs += `<div class="form-group"><label data-translate="diameter">Диаметър (mm):</label><input type="number" id="diameter" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="wallThickness">Дебелина на стената (mm):</label><input type="number" id="wallThickness" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="length">Дължина (m):</label><input type="number" id="length" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="amount">Количество:</label><input type="number" id="amount" class="form-control" autocomplete="off"/></div>`;
             break;
         case "square":
-            inputs += `<label data-translate="width">Ширина (mm):</label><input type="text" id="width" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="length">Дължина (m):</label><input type="text" id="length" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="amount">Количество:</label><input type="text" id="amount" class="form-control" autocomplete="off"/>`;
+            inputs += `<div class="form-group"><label data-translate="width">Ширина (mm):</label><input type="number" id="width" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="length">Дължина (m):</label><input type="number" id="length" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="amount">Количество:</label><input type="number" id="amount" class="form-control" autocomplete="off"/></div>`;
             break;
         case "squarePipe":
-            inputs += `<label data-translate="width">Ширина (mm):</label><input type="text" id="width" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="height">Височина (mm):</label><input type="text" id="height" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="wallThickness">Дебелина на стената (mm):</label><input type="text" id="wallThickness" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="length">Дължина (m):</label><input type="text" id="length" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="amount">Количество:</label><input type="text" id="amount" class="form-control" autocomplete="off"/>`;
+            inputs += `<div class="form-group"><label data-translate="width">Ширина (mm):</label><input type="number" id="width" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="height">Височина (mm):</label><input type="number" id="height" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="wallThickness">Дебелина на стената (mm):</label><input type="number" id="wallThickness" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="length">Дължина (m):</label><input type="number" id="length" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="amount">Количество:</label><input type="number" id="amount" class="form-control" autocomplete="off"/></div>`;
             break;
         case "sheet":
-            inputs += `<label data-translate="width">Ширина (mm):</label><input type="text" id="width" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="thickness">Дебелина (mm):</label><input type="text" id="thickness" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="length">Дължина (m):</label><input type="text" id="length" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="amount">Количество:</label><input type="text" id="amount" class="form-control" autocomplete="off"/>`;
+            inputs += `<div class="form-group"><label data-translate="width">Ширина (mm):</label><input type="number" id="width" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="thickness">Дебелина (mm):</label><input type="number" id="thickness" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="length">Дължина (m):</label><input type="number" id="length" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="amount">Количество:</label><input type="number" id="amount" class="form-control" autocomplete="off"/></div>`;
             break;
         case "strip":
         case "flatbar":
-            inputs += `<label data-translate="width">Ширина (mm):</label><input type="text" id="width" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="thickness">Дебелина (mm):</label><input type="text" id="thickness" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="length">Дължина (m):</label><input type="text" id="length" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="amount">Количество:</label><input type="text" id="amount" class="form-control" autocomplete="off"/>`;
+            inputs += `<div class="form-group"><label data-translate="width">Ширина (mm):</label><input type="number" id="width" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="thickness">Дебелина (mm):</label><input type="number" id="thickness" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="length">Дължина (m):</label><input type="number" id="length" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="amount">Количество:</label><input type="number" id="amount" class="form-control" autocomplete="off"/></div>`;
             break;
         case "hexagon":
-            inputs += `<label data-translate="diameter">Диаметър (mm):</label><input type="text" id="diameter" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="length">Дължина (m):</label><input type="text" id="length" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="amount">Количество:</label><input type="text" id="amount" class="form-control" autocomplete="off"/>`;
+            inputs += `<div class="form-group"><label data-translate="diameter">Диаметър (mm):</label><input type="number" id="diameter" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="length">Дължина (m):</label><input type="number" id="length" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="amount">Количество:</label><input type="number" id="amount" class="form-control" autocomplete="off"/></div>`;
             break;
         case "beam":
-            inputs += `<label data-translate="width">Ширина (mm):</label><input type="text" id="width" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="height">Височина (mm):</label><input type="text" id="height" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="lintelThickness">Дебелина на щурца (mm):</label><input type="text" id="lintelThickness" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="shelfThickness">Дебелина на рафтовете (mm):</label><input type="text" id="shelvesThickness" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="length">Дължина (m):</label><input type="text" id="length" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="amount">Количество:</label><input type="text" id="amount" class="form-control" autocomplete="off"/>`;
+            inputs += `<div class="form-group"><label data-translate="width">Ширина (mm):</label><input type="number" id="width" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="height">Височина (mm):</label><input type="number" id="height" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="lintelThickness">Дебелина на щурца (mm):</label><input type="number" id="lintelThickness" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="shelfThickness">Дебелина на рафтовете (mm):</label><input type="number" id="shelvesThickness" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="length">Дължина (m):</label><input type="number" id="length" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="amount">Количество:</label><input type="number" id="amount" class="form-control" autocomplete="off"/></div>`;
             break;
         case "channel":
-            inputs += `<label data-translate="width">Ширина (mm):</label><input type="text" id="width" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="height">Височина (mm):</label><input type="text" id="height" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="wallThickness">Дебелина на стената (mm):</label><input type="text" id="wallThickness" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="length">Дължина (m):</label><input type="text" id="length" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="amount">Количество:</label><input type="text" id="amount" class="form-control" autocomplete="off"/>`;
+            inputs += `<div class="form-group"><label data-translate="width">Ширина (mm):</label><input type="number" id="width" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="height">Височина (mm):</label><input type="number" id="height" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="wallThickness">Дебелина на стената (mm):</label><input type="number" id="wallThickness" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="length">Дължина (m):</label><input type="number" id="length" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="amount">Количество:</label><input type="number" id="amount" class="form-control" autocomplete="off"/></div>`;
             break;
         case "corner":
-            inputs += `<label data-translate="width">Ширина (mm):</label><input type="text" id="width" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="height">Височина (mm):</label><input type="text" id="height" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="wallThickness">Дебелина на стената (mm):</label><input type="text" id="wallThickness" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="length">Дължина (m):</label><input type="text" id="length" class="form-control" autocomplete="off"/>`;
-            inputs += `<label data-translate="amount">Количество:</label><input type="text" id="amount" class="form-control" autocomplete="off"/>`;
+            inputs += `<div class="form-group"><label data-translate="width">Ширина (mm):</label><input type="number" id="width" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="height">Височина (mm):</label><input type="number" id="height" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="wallThickness">Дебелина на стената (mm):</label><input type="number" id="wallThickness" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="length">Дължина (m):</label><input type="number" id="length" class="form-control" autocomplete="off"/></div>`;
+            inputs += `<div class="form-group"><label data-translate="amount">Количество:</label><input type="number" id="amount" class="form-control" autocomplete="off"/></div>`;
             break;
     }
     inputArea.innerHTML = inputs;
     translateUI();
-    onProductChange(document.getElementById("productSelect").value);
 
-    titleElement.innerText = translations[lang].diagram + ": " + translations[lang][product];
+    // Update diagram title with translation
+    const titleElement = document.getElementById("diagramTitle");
+    titleElement.innerText = translations[currentLanguage].diagram + ": " + translations[currentLanguage][product];
 }
 
 function calculateWeight() {
@@ -131,7 +103,7 @@ function calculateWeight() {
     const middleT = parseInput("lintelThickness");
     const shelvesT = parseInput("shelvesThickness");
     const length = parseInput("length") * 100;
-    const amount = parseInput("diameter");
+    const amount = parseInput("amount");
 
     let volume = 0;
 
@@ -175,7 +147,7 @@ function calculateWeight() {
             break;
 
         case "channel":
-            const baseArea = (middleT / 10) * ((h - 2 * wall) / 10);
+            const baseArea = (wall / 10) * ((h - 2 * wall) / 10);
             const sideArea = 2 * ((w / 10) * (wall / 10));
             volume = (baseArea + sideArea) * (length / 10);
             break;
@@ -204,7 +176,9 @@ function calculateWeight() {
     const density = densities[metal] || 0;
     const weight = (volume * density * amount / 100).toFixed(2);
 
-    document.getElementById("result").innerText = `Тегло: ${weight} kg.`;
+    // Use translated "Weight" word
+    const weightWord = translations[currentLanguage].weight || "Тегло";
+    document.getElementById("result").innerText = `${weightWord}: ${weight} kg`;
 }
 
 function parseInput(id) {
@@ -216,11 +190,16 @@ function parseInput(id) {
 function setLanguage(lang) {
     currentLanguage = lang;
 
-    // Save preference in local storage (optional)
+    // Save preference in local storage
     localStorage.setItem('lang', lang);
 
     translateUI();
-    onProductChange(document.getElementById("productSelect").value); // refresh dynamic labels
+
+    // Refresh product display if one is selected
+    const product = document.getElementById("productSelect").value;
+    if (product) {
+        onProductChange(product);
+    }
 }
 
 function translateUI() {
@@ -233,26 +212,29 @@ function translateUI() {
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
             el.placeholder = translation;
         } else if (el.tagName === 'OPTION') {
-            el.textContent = translation; // ✅ Now translates <option> items
+            el.textContent = translation;
         } else {
             el.textContent = translation;
         }
     });
 
-    // Translate result label if needed
+    // Clear result when language changes
     const result = document.getElementById("result");
-    if (result && result.textContent.includes("Тегло:")) {
-        result.textContent = "";
+    if (result && result.textContent) {
+        // Only clear if it contains weight data
+        if (result.textContent.includes(":")) {
+            result.textContent = "";
+        }
     }
 
+    // Update diagram title
     const product = document.getElementById("productSelect").value;
-    const lang = currentLanguage;
     const titleElement = document.getElementById("diagramTitle");
 
     if (product) {
-        titleElement.innerText = translations[lang].diagram + ": " + translations[lang][product];
+        titleElement.innerText = translations[currentLanguage].diagram + ": " + translations[currentLanguage][product];
     } else {
-        titleElement.innerText = translations[lang].pleaseSelectProduct;
+        titleElement.innerText = translations[currentLanguage].pleaseSelectProduct;
     }
 }
 
