@@ -149,6 +149,7 @@ body {
     background: var(--card-bg);
     border-radius: 16px;
     padding: 40px;
+    padding-top: 80px;
     box-shadow: var(--shadow-lg);
     background-size: contain;
     background-repeat: no-repeat;
