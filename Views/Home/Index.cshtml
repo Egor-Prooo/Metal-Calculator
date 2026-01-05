@@ -1,0 +1,86 @@
+﻿@{
+    ViewData["Title"] = "Калкулатор за тегло на метали";
+}
+
+<div class="calculator-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3 data-translate="pageTitle">@ViewData["Title"]</h3>
+
+        <div class="form-group">
+            <label for="productSelect" data-translate="selectProduct">Изберете продукт:</label>
+            <select id="productSelect" class="form-control" onchange="onProductChange(this.value)">
+                <option value="" data-translate="choose">-- Изберете --</option>
+                <option value="wire" data-translate="wire">Тел/катанка</option>
+                <option value="square" data-translate="square">Квадрат</option>
+                <option value="hexagon" data-translate="hexagon">Шестоъгълник</option>
+                <option value="corner" data-translate="corner">Ъглов профил</option>
+                <option value="sheet" data-translate="sheet">Лист</option>
+                <option value="pipe" data-translate="pipe">Тръба</option>
+                <option value="squarePipe" data-translate="squarePipe">Квадратна тръба</option>
+                <option value="channel" data-translate="channel">П-профил</option>
+                <option value="strip" data-translate="strip">Лента</option>
+                <option value="flatbar" data-translate="flatbar">Шина</option>
+                <option value="beam" data-translate="beam">HEA</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="metalSelect" data-translate="selectMetal">Изберете метал:</label>
+            <select id="metalSelect" class="form-control">
+                <option value="" data-translate="choose">-- Изберете --</option>
+                <option value="copper" data-translate="copper">Мед</option>
+                <option value="bronze" data-translate="bronze">Бронз</option>
+                <option value="aluminum" data-translate="aluminum">Алуминий</option>
+                <option value="zinc" data-translate="zinc">Цинк</option>
+                <option value="tin" data-translate="tin">Калай</option>
+                <option value="steel" data-translate="steel">Стомана</option>
+                <option value="lead" data-translate="lead">Олово</option>
+                <option value="titanium" data-translate="titanium">Титан</option>
+                <option value="nickel" data-translate="nickel">Никел</option>
+                <option value="brass" data-translate="brass">Месинг</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="languageSelector" style="position: absolute; top: 10px; right: 10px;">
+        <button onclick="setLanguage('bg')">BG</button>
+        <button onclick="setLanguage('en')">EN</button>
+        <button onclick="setLanguage('ru')">RU</button>
+        <button onclick="setLanguage('tr')">TR</button>
+        <button onclick="setLanguage('de')">DE</button>
+        <button onclick="setLanguage('el')">GR</button>
+        <button onclick="setLanguage('ro')">RO</button>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content" style="background-image: url('@Url.Content("~/diagrams/")');">
+        <h4 id="diagramTitle" data-translate="pleaseSelectProduct">Моля изберете продукт</h4>
+        <img id="diagramImage" src="" class="diagram" style="display:none;" />
+
+        <div id="dynamicInputs" class="input-fields">
+            <!-- Dynamic input fields appear here -->
+        </div>
+
+        <br />
+
+        <button class="btn btn-primary" onclick="calculateWeight()" data-translate="calculateWeight">Изчисли теглото</button>
+
+        <br />
+
+        <p data-translate="result">Резултат:</p>
+        <div id="result" class="result-output">
+            <!-- Result appears here -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/translations.js"></script>
+    <script src="~/js/site.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            translateUI();
+        });
+    </script>
+}
