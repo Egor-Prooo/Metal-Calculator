@@ -10,7 +10,7 @@ function onProductChange(product) {
         diagramImage.src = "";
         diagramImage.style.display = "none";
         inputArea.innerHTML = "";
-        document.getElementById("result").innerText = ``;
+        document.getElementById("result").innerText = "";
         return;
     }
 
@@ -177,12 +177,18 @@ function calculateWeight() {
     const weight = (volume * density * amount / 100).toFixed(2);
 
     // Use translated "Weight" word
-    const weightWord = translations[currentLanguage].weight || "Тегло";
-    document.getElementById("result").innerText = `${weightWord}: ${weight} kg`;
+    const weightWord = translations[currentLanguage]?.weight || "Weight";
+    console.log("Current language:", currentLanguage);
+    console.log("Weight word:", weightWord);
+    console.log("Full result:", weightWord + ": " + weight + " kg");
+
+    document.getElementById("result").innerText = weightWord + ": " + weight + " kg";
 }
 
 function parseInput(id) {
-    const raw = document.getElementById(id)?.value || "0";
+    const element = document.getElementById(id);
+    if (!element) return 0;
+    const raw = element.value || "0";
     const normalized = raw.replace(",", ".");
     return parseFloat(normalized);
 }
@@ -243,6 +249,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (saved) {
         setLanguage(saved);
     } else {
-        translateUI(); // Default language
+        translateUI();
     }
 });
