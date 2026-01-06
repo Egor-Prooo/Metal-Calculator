@@ -1,5 +1,73 @@
 ﻿let currentLanguage = 'bg';
 
+// Custom Alert Function
+function showCustomAlert(message) {
+    // Remove existing alert if any
+    const existingAlert = document.querySelector('.custom-alert-overlay');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'custom-alert-overlay';
+
+    // Create alert box
+    const alertBox = document.createElement('div');
+    alertBox.className = 'custom-alert';
+
+    // Create header
+    const header = document.createElement('div');
+    header.className = 'custom-alert-header';
+
+    const icon = document.createElement('div');
+    icon.className = 'custom-alert-icon';
+    icon.innerHTML = '⚠';
+
+    const title = document.createElement('h3');
+    title.className = 'custom-alert-title';
+    title.textContent = translations[currentLanguage].error;
+
+    header.appendChild(icon);
+    header.appendChild(title);
+
+    // Create message
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'custom-alert-message';
+    messageDiv.textContent = message;
+
+    // Create button
+    const button = document.createElement('button');
+    button.className = 'custom-alert-button';
+    button.textContent = translations[currentLanguage].ok;
+    button.onclick = () => overlay.remove();
+
+    // Assemble alert
+    alertBox.appendChild(header);
+    alertBox.appendChild(messageDiv);
+    alertBox.appendChild(button);
+    overlay.appendChild(alertBox);
+
+    // Add to page
+    document.body.appendChild(overlay);
+
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.remove();
+        }
+    });
+
+    // Close on Escape key
+    const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+            overlay.remove();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
 function onProductChange(product) {
     const diagramImage = document.getElementById("diagramImage");
     const diagramTitle = document.getElementById("diagramTitle");
@@ -94,6 +162,90 @@ function onProductChange(product) {
 function calculateWeight() {
     const product = document.getElementById("productSelect").value;
     const metal = document.getElementById("metalSelect").value;
+
+    // Check if metal is selected
+    if (!metal) {
+        showCustomAlert(translations[currentLanguage].pleaseSelectMetal);
+        return;
+    }
+
+    // Get field labels for validation messages
+    const fieldLabels = {
+        diameter: translations[currentLanguage].diameter,
+        width: translations[currentLanguage].width,
+        height: translations[currentLanguage].height,
+        thickness: translations[currentLanguage].thickness,
+        wallThickness: translations[currentLanguage].wallThickness,
+        lintelThickness: translations[currentLanguage].lintelThickness,
+        shelvesThickness: translations[currentLanguage].shelfThickness,
+        length: translations[currentLanguage].length,
+        amount: translations[currentLanguage].amount
+    };
+
+    // Validate required fields based on product type
+    const missingFields = [];
+
+    switch (product) {
+        case "wire":
+            if (!document.getElementById("diameter")?.value) missingFields.push(fieldLabels.diameter);
+            if (!document.getElementById("length")?.value) missingFields.push(fieldLabels.length);
+            if (!document.getElementById("amount")?.value) missingFields.push(fieldLabels.amount);
+            break;
+        case "pipe":
+            if (!document.getElementById("diameter")?.value) missingFields.push(fieldLabels.diameter);
+            if (!document.getElementById("wallThickness")?.value) missingFields.push(fieldLabels.wallThickness);
+            if (!document.getElementById("length")?.value) missingFields.push(fieldLabels.length);
+            if (!document.getElementById("amount")?.value) missingFields.push(fieldLabels.amount);
+            break;
+        case "square":
+            if (!document.getElementById("width")?.value) missingFields.push(fieldLabels.width);
+            if (!document.getElementById("length")?.value) missingFields.push(fieldLabels.length);
+            if (!document.getElementById("amount")?.value) missingFields.push(fieldLabels.amount);
+            break;
+        case "squarePipe":
+            if (!document.getElementById("width")?.value) missingFields.push(fieldLabels.width);
+            if (!document.getElementById("height")?.value) missingFields.push(fieldLabels.height);
+            if (!document.getElementById("wallThickness")?.value) missingFields.push(fieldLabels.wallThickness);
+            if (!document.getElementById("length")?.value) missingFields.push(fieldLabels.length);
+            if (!document.getElementById("amount")?.value) missingFields.push(fieldLabels.amount);
+            break;
+        case "sheet":
+        case "strip":
+        case "flatbar":
+            if (!document.getElementById("width")?.value) missingFields.push(fieldLabels.width);
+            if (!document.getElementById("thickness")?.value) missingFields.push(fieldLabels.thickness);
+            if (!document.getElementById("length")?.value) missingFields.push(fieldLabels.length);
+            if (!document.getElementById("amount")?.value) missingFields.push(fieldLabels.amount);
+            break;
+        case "hexagon":
+            if (!document.getElementById("diameter")?.value) missingFields.push(fieldLabels.diameter);
+            if (!document.getElementById("length")?.value) missingFields.push(fieldLabels.length);
+            if (!document.getElementById("amount")?.value) missingFields.push(fieldLabels.amount);
+            break;
+        case "beam":
+            if (!document.getElementById("width")?.value) missingFields.push(fieldLabels.width);
+            if (!document.getElementById("height")?.value) missingFields.push(fieldLabels.height);
+            if (!document.getElementById("lintelThickness")?.value) missingFields.push(fieldLabels.lintelThickness);
+            if (!document.getElementById("shelvesThickness")?.value) missingFields.push(fieldLabels.shelvesThickness);
+            if (!document.getElementById("length")?.value) missingFields.push(fieldLabels.length);
+            if (!document.getElementById("amount")?.value) missingFields.push(fieldLabels.amount);
+            break;
+        case "channel":
+        case "corner":
+            if (!document.getElementById("width")?.value) missingFields.push(fieldLabels.width);
+            if (!document.getElementById("height")?.value) missingFields.push(fieldLabels.height);
+            if (!document.getElementById("wallThickness")?.value) missingFields.push(fieldLabels.wallThickness);
+            if (!document.getElementById("length")?.value) missingFields.push(fieldLabels.length);
+            if (!document.getElementById("amount")?.value) missingFields.push(fieldLabels.amount);
+            break;
+    }
+
+    // Show error if fields are missing
+    if (missingFields.length > 0) {
+        const message = translations[currentLanguage].pleaseInput + ": " + missingFields.join(", ");
+        showCustomAlert(message);
+        return;
+    }
 
     const d = parseInput("diameter");
     const w = parseInput("width");

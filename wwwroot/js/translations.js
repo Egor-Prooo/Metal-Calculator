@@ -38,7 +38,11 @@
         titanium: "Титан",
         nickel: "Никел",
         brass: "Месинг",
-        weight: "Тегло"
+        weight: "Тегло",
+        pleaseSelectMetal: "Моля, изберете метал",
+        pleaseInput: "Моля, въведете",
+        error: "Грешка",
+        ok: "ОК"
     },
     en: {
         pageTitle: "Metal Weight Calculator",
@@ -79,7 +83,11 @@
         titanium: "Titanium",
         nickel: "Nickel",
         brass: "Brass",
-        weight: "Weight"
+        weight: "Weight",
+        pleaseSelectMetal: "Please select a metal",
+        pleaseInput: "Please input",
+        error: "Error",
+        ok: "OK"
     },
     ru: {
         pageTitle: "Калькулятор веса металла",
@@ -120,7 +128,11 @@
         titanium: "Титан",
         nickel: "Никель",
         brass: "Латунь",
-        weight: "Вес"
+        weight: "Вес",
+        pleaseSelectMetal: "Пожалуйста, выберите металл",
+        pleaseInput: "Пожалуйста, введите",
+        error: "Ошибка",
+        ok: "ОК"
     },
     tr: {
         pageTitle: "Metal Ağırlık Hesaplayıcı",
@@ -161,7 +173,11 @@
         titanium: "Titanyum",
         nickel: "Nikel",
         brass: "Pirinç",
-        weight: "Ağırlık"
+        weight: "Ağırlık",
+        pleaseSelectMetal: "Lütfen bir metal seçin",
+        pleaseInput: "Lütfen girin",
+        error: "Hata",
+        ok: "Tamam"
     },
     de: {
         pageTitle: "Metallgewicht-Rechner",
@@ -202,7 +218,11 @@
         titanium: "Titan",
         nickel: "Nickel",
         brass: "Messing",
-        weight: "Gewicht"
+        weight: "Gewicht",
+        pleaseSelectMetal: "Bitte wählen Sie ein Metall",
+        pleaseInput: "Bitte eingeben",
+        error: "Fehler",
+        ok: "OK"
     },
     el: {
         pageTitle: "Υπολογιστής βάρους μετάλλων",
@@ -243,7 +263,11 @@
         titanium: "Τιτάνιο",
         nickel: "Νικέλιο",
         brass: "Ορείχαλκος",
-        weight: "Βάρος"
+        weight: "Βάρος",
+        pleaseSelectMetal: "Παρακαλώ επιλέξτε μέταλλο",
+        pleaseInput: "Παρακαλώ εισάγετε",
+        error: "Σφάλμα",
+        ok: "Εντάξει"
     },
     ro: {
         pageTitle: "Calculator greutate metalelor",
@@ -284,6 +308,10 @@
         titanium: "Titan",
         nickel: "Nichel",
         brass: "Alamă",
-        weight: "Greutate"
+        weight: "Greutate",
+        pleaseSelectMetal: "Vă rugăm să selectați un metal",
+        pleaseInput: "Vă rugăm să introduceți",
+        error: "Eroare",
+        ok: "OK"
     }
 };
