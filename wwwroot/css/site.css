@@ -238,6 +238,18 @@ body {
         border-color: var(--accent-color);
     }
 
+/* Remove number input arrows/spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
 /* Button Styling */
 .btn {
     padding: 14px 32px;
@@ -408,13 +420,6 @@ body {
 
 .calculating {
     animation: pulse 1.5s ease-in-out infinite;
-}
-
-/* Input number spinner styling */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    opacity: 1;
-    height: 40px;
 }
 
 /* Focus visible for accessibility */

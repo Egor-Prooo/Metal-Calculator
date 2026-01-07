@@ -163,6 +163,12 @@ function calculateWeight() {
     const product = document.getElementById("productSelect").value;
     const metal = document.getElementById("metalSelect").value;
 
+    // Check if product is selected
+    if (!product) {
+        showCustomAlert(translations[currentLanguage].pleaseSelectProduct);
+        return;
+    }
+
     // Check if metal is selected
     if (!metal) {
         showCustomAlert(translations[currentLanguage].pleaseSelectMetal);
@@ -330,9 +336,6 @@ function calculateWeight() {
 
     // Use translated "Weight" word
     const weightWord = translations[currentLanguage]?.weight || "Weight";
-    console.log("Current language:", currentLanguage);
-    console.log("Weight word:", weightWord);
-    console.log("Full result:", weightWord + ": " + weight + " kg");
 
     document.getElementById("result").innerText = weightWord + ": " + weight + " kg";
 }
