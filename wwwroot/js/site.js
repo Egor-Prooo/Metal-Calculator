@@ -13,16 +13,11 @@ const unitConversions = {
     lbsToKg: 0.453592
 };
 
-// ─────────────────────────────────────────────
-//  CUSTOM ALERT / SUCCESS
-// ─────────────────────────────────────────────
 function showCustomAlert(message) {
     const existing = document.querySelector('.custom-alert-overlay');
     if (existing) existing.remove();
-
     const overlay = document.createElement('div');
     overlay.className = 'custom-alert-overlay';
-
     overlay.innerHTML = `
         <div class="custom-alert">
             <div class="custom-alert-header">
@@ -34,7 +29,6 @@ function showCustomAlert(message) {
                 ${translations[currentLanguage].ok}
             </button>
         </div>`;
-
     document.body.appendChild(overlay);
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     document.addEventListener('keydown', function esc(e) {
@@ -45,10 +39,8 @@ function showCustomAlert(message) {
 function showSuccessMessage(message) {
     const existing = document.querySelector('.custom-alert-overlay');
     if (existing) existing.remove();
-
     const overlay = document.createElement('div');
     overlay.className = 'custom-alert-overlay';
-
     overlay.innerHTML = `
         <div class="custom-alert">
             <div class="custom-alert-header">
@@ -60,22 +52,16 @@ function showSuccessMessage(message) {
                 ${translations[currentLanguage].ok}
             </button>
         </div>`;
-
     document.body.appendChild(overlay);
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
     setTimeout(() => overlay.remove(), 2000);
 }
 
-// ─────────────────────────────────────────────
-//  PRESET MODAL (replaces browser prompt)
-// ─────────────────────────────────────────────
 function showPresetModal() {
     const existing = document.querySelector('.custom-alert-overlay');
     if (existing) existing.remove();
-
     const overlay = document.createElement('div');
     overlay.className = 'custom-alert-overlay';
-
     overlay.innerHTML = `
         <div class="custom-alert preset-modal">
             <div class="custom-alert-header">
@@ -97,10 +83,8 @@ function showPresetModal() {
                 </button>
             </div>
         </div>`;
-
     document.body.appendChild(overlay);
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-
     setTimeout(() => {
         const input = document.getElementById('presetNameInput');
         if (input) {
@@ -116,7 +100,6 @@ function showPresetModal() {
 function savePreset() {
     const product = document.getElementById("productSelect").value;
     const metal = document.getElementById("metalSelect").value;
-
     if (!product || !metal) {
         showCustomAlert(translations[currentLanguage].pleaseSelectProduct);
         return;
@@ -127,26 +110,20 @@ function savePreset() {
 function confirmSavePreset() {
     const nameInput = document.getElementById('presetNameInput');
     const name = nameInput ? nameInput.value.trim() : '';
-
     if (!name) {
         nameInput.classList.add('input-error');
         nameInput.focus();
         return;
     }
-
     const product = document.getElementById("productSelect").value;
     const metal = document.getElementById("metalSelect").value;
     const price = document.getElementById("pricePerKg")?.value || '';
-
     const preset = { id: Date.now(), name, product, metal, price, values: {} };
-
     document.querySelectorAll('#dynamicInputs input').forEach(input => {
         preset.values[input.id] = input.value;
     });
-
     presets.push(preset);
     localStorage.setItem('metalCalcPresets', JSON.stringify(presets));
-
     document.querySelector('.custom-alert-overlay')?.remove();
     updatePresetsList();
     showSuccessMessage(translations[currentLanguage].presetSaved);
@@ -155,11 +132,9 @@ function confirmSavePreset() {
 function loadPreset(presetId) {
     const preset = presets.find(p => p.id === presetId);
     if (!preset) return;
-
     document.getElementById("productSelect").value = preset.product;
     document.getElementById("metalSelect").value = preset.metal;
     onProductChange(preset.product);
-
     setTimeout(() => {
         Object.keys(preset.values).forEach(key => {
             const el = document.getElementById(key);
@@ -179,10 +154,8 @@ function deletePreset(presetId) {
 function showDeleteConfirmModal(presetId) {
     const existing = document.querySelector('.custom-alert-overlay');
     if (existing) existing.remove();
-
     const overlay = document.createElement('div');
     overlay.className = 'custom-alert-overlay';
-
     overlay.innerHTML = `
         <div class="custom-alert">
             <div class="custom-alert-header">
@@ -201,7 +174,6 @@ function showDeleteConfirmModal(presetId) {
                 </button>
             </div>
         </div>`;
-
     document.body.appendChild(overlay);
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 }
@@ -217,12 +189,10 @@ function confirmDeletePreset(presetId) {
 function updatePresetsList() {
     const container = document.getElementById('presetsContainer');
     if (!container) return;
-
     if (presets.length === 0) {
         container.innerHTML = `<p class="no-presets">${translations[currentLanguage].noPresets}</p>`;
         return;
     }
-
     container.innerHTML = presets.map(preset => `
         <div class="preset-item">
             <div class="preset-info">
@@ -240,9 +210,6 @@ function updatePresetsList() {
         </div>`).join('');
 }
 
-// ─────────────────────────────────────────────
-//  UNITS
-// ─────────────────────────────────────────────
 function toggleUnits() {
     currentUnit = currentUnit === 'metric' ? 'imperial' : 'metric';
     localStorage.setItem('unitSystem', currentUnit);
@@ -275,9 +242,6 @@ function convertInputValue(value, type) {
     return value;
 }
 
-// ─────────────────────────────────────────────
-//  REVERSE MODE TOGGLE
-// ─────────────────────────────────────────────
 function toggleReverseMode() {
     isReverseMode = !isReverseMode;
     const btn = document.getElementById('reverseModeBtn');
@@ -285,10 +249,8 @@ function toggleReverseMode() {
         btn.classList.toggle('active', isReverseMode);
         btn.textContent = translations[currentLanguage].reverseMode || '⇄ Reverse Mode';
     }
-
     const product = document.getElementById("productSelect").value;
     if (product) onProductChange(product);
-
     const calcBtn = document.querySelector('.btn-primary[onclick="calculateWeight()"]');
     if (calcBtn) {
         calcBtn.textContent = isReverseMode
@@ -297,9 +259,6 @@ function toggleReverseMode() {
     }
 }
 
-// ─────────────────────────────────────────────
-//  PRODUCT CHANGE → BUILD INPUTS
-// ─────────────────────────────────────────────
 function onProductChange(product) {
     const diagramImage = document.getElementById("diagramImage");
     const diagramTitle = document.getElementById("diagramTitle");
@@ -404,7 +363,6 @@ function onProductChange(product) {
 
     inputArea.innerHTML = inputs;
 
-    // Attach live calculation listeners
     inputArea.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', debounce(liveCalculate, 300));
     });
@@ -414,12 +372,8 @@ function onProductChange(product) {
     diagramTitle.innerText = `${L.diagram}: ${L[product]}`;
 }
 
-// ─────────────────────────────────────────────
-//  VOLUME FACTOR (shared between forward/reverse)
-// ─────────────────────────────────────────────
 function computeVolumeFactor(product, dims) {
     const { d, w, h, t, wall, middleT, shelvesT } = dims;
-
     switch (product) {
         case "wire":
             return Math.PI * Math.pow(d / 20, 2);
@@ -479,9 +433,6 @@ const densities = {
     steel: 7.85, lead: 11.34, titanium: 4.51, nickel: 8.9, brass: 8.73
 };
 
-// ─────────────────────────────────────────────
-//  DEBOUNCE + LIVE CALCULATE
-// ─────────────────────────────────────────────
 function debounce(fn, ms) {
     let timer;
     return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
@@ -491,12 +442,10 @@ function liveCalculate() {
     const product = document.getElementById("productSelect").value;
     const metal = document.getElementById("metalSelect").value;
     if (!product || !metal) return;
-
     const inputs = document.querySelectorAll('#dynamicInputs input:not(.reverse-input):not([id="targetWeight"]):not([id="amount"])');
     for (const inp of inputs) {
         if (!inp.value || isNaN(parseFloat(inp.value))) return;
     }
-
     if (isReverseMode) {
         calculateLength(true);
     } else {
@@ -505,7 +454,7 @@ function liveCalculate() {
 }
 
 // ─────────────────────────────────────────────
-//  CALCULATE WEIGHT
+//  CALCULATE WEIGHT  ← BUG FIXED HERE
 // ─────────────────────────────────────────────
 function calculateWeight(silent = false) {
     const product = document.getElementById("productSelect").value;
@@ -527,7 +476,7 @@ function calculateWeight(silent = false) {
     }
 
     const vf = computeVolumeFactor(product, dims);
-    const volume = vf * length;
+    const volume = vf * (length / 10);  // ← FIXED: was (vf * length)
     const density = densities[metal] || 0;
     let weight = (volume * density * amount / 100);
 
@@ -559,7 +508,7 @@ function calculateWeight(silent = false) {
 }
 
 // ─────────────────────────────────────────────
-//  CALCULATE LENGTH (REVERSE)
+//  CALCULATE LENGTH (REVERSE)  ← BUG FIXED HERE
 // ─────────────────────────────────────────────
 function calculateLength(silent = false) {
     const product = document.getElementById("productSelect").value;
@@ -585,7 +534,9 @@ function calculateLength(silent = false) {
     const vf = computeVolumeFactor(product, dims);
     if (!vf) return;
 
-    const lengthCm = (targetWeight * 100) / (vf * density * amount);
+    // weight(kg) = vf * (lengthCm/10) * density * amount / 100
+    // → lengthCm = targetWeight * 100 * 10 / (vf * density * amount)
+    const lengthCm = (targetWeight * 1000) / (vf * density * amount);  // ← FIXED: was *100
     let lengthM = lengthCm / 100;
 
     let lengthUnit = 'm';
@@ -608,9 +559,6 @@ function calculateLength(silent = false) {
     }
 }
 
-// ─────────────────────────────────────────────
-//  HISTORY
-// ─────────────────────────────────────────────
 function addToHistory(entry) {
     const item = { id: Date.now(), timestamp: new Date().toLocaleString(), ...entry };
     calculationHistory.unshift(item);
@@ -622,14 +570,11 @@ function addToHistory(entry) {
 function updateHistoryPanel() {
     const container = document.getElementById('historyContainer');
     if (!container) return;
-
     const L = translations[currentLanguage];
-
     if (calculationHistory.length === 0) {
         container.innerHTML = `<p class="no-presets">${L.noHistory || 'No history yet'}</p>`;
         return;
     }
-
     container.innerHTML = calculationHistory.map(item => `
         <div class="history-item" onclick="reloadHistory(${item.id})" title="Click to reload">
             <div class="history-info">
@@ -643,11 +588,9 @@ function updateHistoryPanel() {
 function reloadHistory(id) {
     const item = calculationHistory.find(h => h.id === id);
     if (!item) return;
-
     document.getElementById("productSelect").value = item.product;
     document.getElementById("metalSelect").value = item.metal;
     onProductChange(item.product);
-
     setTimeout(() => {
         if (document.getElementById("length")) document.getElementById("length").value = item.length;
         if (document.getElementById("amount")) document.getElementById("amount").value = item.amount;
@@ -661,18 +604,12 @@ function clearHistory() {
     updateHistoryPanel();
 }
 
-// ─────────────────────────────────────────────
-//  PARSE INPUT
-// ─────────────────────────────────────────────
 function parseInput(id) {
     const el = document.getElementById(id);
     if (!el) return 0;
     return parseFloat((el.value || "0").replace(",", ".")) || 0;
 }
 
-// ─────────────────────────────────────────────
-//  LANGUAGE
-// ─────────────────────────────────────────────
 function setLanguage(lang) {
     currentLanguage = lang;
     localStorage.setItem('lang', lang);
@@ -680,7 +617,6 @@ function setLanguage(lang) {
     updateUnitButton();
     updatePresetsList();
     updateHistoryPanel();
-
     const product = document.getElementById("productSelect").value;
     if (product) onProductChange(product);
 }
@@ -693,26 +629,19 @@ function translateUI() {
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = tr;
         else el.textContent = tr;
     });
-
     const result = document.getElementById("result");
     if (result && result.textContent.includes(":")) result.innerHTML = "";
-
     const product = document.getElementById("productSelect").value;
     const titleEl = document.getElementById("diagramTitle");
     const L = translations[currentLanguage];
     titleEl.innerText = product ? `${L.diagram}: ${L[product]}` : L.pleaseSelectProduct;
 }
 
-// ─────────────────────────────────────────────
-//  INIT
-// ─────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
     const savedLang = localStorage.getItem('lang');
     if (savedLang) setLanguage(savedLang); else translateUI();
-
     const savedUnit = localStorage.getItem('unitSystem');
     if (savedUnit) currentUnit = savedUnit;
-
     updateUnitButton();
     updatePresetsList();
     updateHistoryPanel();
