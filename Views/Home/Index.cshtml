@@ -42,11 +42,28 @@
             </select>
         </div>
 
+        <!-- Cost Estimator -->
+        <div class="form-group cost-group">
+            <label data-translate="pricePerKg">Цена / кг:</label>
+            <div class="cost-inputs">
+                <input type="number" step="any" id="pricePerKg" class="form-control cost-price"
+                       placeholder="0.00" autocomplete="off" />
+                <input type="text" id="currency" class="form-control cost-currency"
+                       placeholder="BGN" maxlength="5" autocomplete="off" />
+            </div>
+        </div>
+
         <!-- Unit Toggle -->
         <div class="form-group">
             <label data-translate="units">Единици:</label>
-            <button class="btn btn-secondary unit-toggle-btn" onclick="toggleUnits()">
-                Метрични
+            <button class="btn btn-secondary unit-toggle-btn" onclick="toggleUnits()">Метрични</button>
+        </div>
+
+        <!-- Reverse Mode -->
+        <div class="form-group">
+            <button id="reverseModeBtn" class="btn reverse-mode-btn" onclick="toggleReverseMode()"
+                    data-translate="reverseMode">
+                ⇄ Обратно изчисление
             </button>
         </div>
 
@@ -60,9 +77,21 @@
                 <p class="no-presets" data-translate="noPresets">Няма запазени шаблони</p>
             </div>
         </div>
+
+        <!-- History Section -->
+        <div class="presets-section history-section">
+            <div class="history-header">
+                <h4 data-translate="history">История</h4>
+                <button class="btn-clear-history" onclick="clearHistory()" data-translate="clearHistory">Изчисти</button>
+            </div>
+            <div id="historyContainer" class="presets-list">
+                <p class="no-presets" data-translate="noHistory">Няма история</p>
+            </div>
+        </div>
     </div>
 
-    <div id="languageSelector" style="position: absolute; top: 10px; right: 10px;">
+    <!-- Language Selector -->
+    <div id="languageSelector">
         <button onclick="setLanguage('bg')">BG</button>
         <button onclick="setLanguage('en')">EN</button>
         <button onclick="setLanguage('ru')">RU</button>
@@ -77,20 +106,18 @@
         <h4 id="diagramTitle" data-translate="pleaseSelectProduct">Моля изберете продукт</h4>
         <img id="diagramImage" src="" class="diagram" style="display:none;" />
 
-        <div id="dynamicInputs" class="input-fields">
-            <!-- Dynamic input fields appear here -->
-        </div>
+        <div id="dynamicInputs" class="input-fields"></div>
 
         <br />
 
-        <button class="btn btn-primary" onclick="calculateWeight()" data-translate="calculateWeight">Изчисли теглото</button>
+        <button class="btn btn-primary" onclick="calculateWeight()" data-translate="calculateWeight">
+            Изчисли теглото
+        </button>
 
         <br />
 
         <p data-translate="result">Резултат:</p>
-        <div id="result" class="result-output">
-            <!-- Result appears here -->
-        </div>
+        <div id="result" class="result-output"></div>
     </div>
 </div>
 
