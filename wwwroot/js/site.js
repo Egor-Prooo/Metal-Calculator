@@ -3,16 +3,17 @@ let currentUnit = 'metric';
 let presets = JSON.parse(localStorage.getItem('metalCalcPresets') || '[]');
 let calculationHistory = JSON.parse(localStorage.getItem('metalCalcHistory') || '[]');
 let isReverseMode = false;
+let reverseTarget = 'length'; // which field to solve for
 
 const unitConversions = {
-    mToFt: 3.28084,
-    ftToM: 0.3048,
-    mmToIn: 0.0393701,
-    inToMm: 25.4,
-    kgToLbs: 2.20462,
-    lbsToKg: 0.453592
+    mToFt: 3.28084, ftToM: 0.3048,
+    mmToIn: 0.0393701, inToMm: 25.4,
+    kgToLbs: 2.20462, lbsToKg: 0.453592
 };
 
+// ─────────────────────────────────────────────
+//  ALERTS / MODALS
+// ─────────────────────────────────────────────
 function showCustomAlert(message) {
     const existing = document.querySelector('.custom-alert-overlay');
     if (existing) existing.remove();
@@ -76,7 +77,7 @@ function showPresetModal() {
             <div class="preset-modal-actions">
                 <button class="custom-alert-button preset-cancel-btn"
                         onclick="this.closest('.custom-alert-overlay').remove()">
-                    ✕ ${translations[currentLanguage].cancel || 'Cancel'}
+                    ✕ ${translations[currentLanguage].cancel}
                 </button>
                 <button class="custom-alert-button" onclick="confirmSavePreset()">
                     ✓ ${translations[currentLanguage].savePreset}
@@ -97,24 +98,20 @@ function showPresetModal() {
     }, 50);
 }
 
+// ─────────────────────────────────────────────
+//  PRESETS
+// ─────────────────────────────────────────────
 function savePreset() {
     const product = document.getElementById("productSelect").value;
     const metal = document.getElementById("metalSelect").value;
-    if (!product || !metal) {
-        showCustomAlert(translations[currentLanguage].pleaseSelectProduct);
-        return;
-    }
+    if (!product || !metal) { showCustomAlert(translations[currentLanguage].pleaseSelectProduct); return; }
     showPresetModal();
 }
 
 function confirmSavePreset() {
     const nameInput = document.getElementById('presetNameInput');
     const name = nameInput ? nameInput.value.trim() : '';
-    if (!name) {
-        nameInput.classList.add('input-error');
-        nameInput.focus();
-        return;
-    }
+    if (!name) { nameInput.classList.add('input-error'); nameInput.focus(); return; }
     const product = document.getElementById("productSelect").value;
     const metal = document.getElementById("metalSelect").value;
     const price = document.getElementById("pricePerKg")?.value || '';
@@ -140,18 +137,13 @@ function loadPreset(presetId) {
             const el = document.getElementById(key);
             if (el) el.value = preset.values[key];
         });
-        if (preset.price && document.getElementById("pricePerKg")) {
+        if (preset.price && document.getElementById("pricePerKg"))
             document.getElementById("pricePerKg").value = preset.price;
-        }
         showSuccessMessage(translations[currentLanguage].presetLoaded);
     }, 100);
 }
 
 function deletePreset(presetId) {
-    showDeleteConfirmModal(presetId);
-}
-
-function showDeleteConfirmModal(presetId) {
     const existing = document.querySelector('.custom-alert-overlay');
     if (existing) existing.remove();
     const overlay = document.createElement('div');
@@ -162,11 +154,11 @@ function showDeleteConfirmModal(presetId) {
                 <div class="custom-alert-icon">🗑</div>
                 <h3 class="custom-alert-title">${translations[currentLanguage].deletePreset}?</h3>
             </div>
-            <div class="custom-alert-message">${translations[currentLanguage].deletePresetConfirm || 'Are you sure?'}</div>
+            <div class="custom-alert-message">${translations[currentLanguage].deletePresetConfirm}</div>
             <div class="preset-modal-actions">
                 <button class="custom-alert-button preset-cancel-btn"
                         onclick="this.closest('.custom-alert-overlay').remove()">
-                    ✕ ${translations[currentLanguage].cancel || 'Cancel'}
+                    ✕ ${translations[currentLanguage].cancel}
                 </button>
                 <button class="custom-alert-button" style="background:linear-gradient(135deg,#e74c3c,#c0392b)"
                         onclick="confirmDeletePreset(${presetId})">
@@ -200,16 +192,15 @@ function updatePresetsList() {
                 <small>${translations[currentLanguage][preset.product] || preset.product} — ${translations[currentLanguage][preset.metal] || preset.metal}</small>
             </div>
             <div class="preset-actions">
-                <button class="preset-btn load-btn" onclick="loadPreset(${preset.id})">
-                    ${translations[currentLanguage].loadPreset}
-                </button>
-                <button class="preset-btn delete-btn" onclick="deletePreset(${preset.id})">
-                    ${translations[currentLanguage].deletePreset}
-                </button>
+                <button class="preset-btn load-btn" onclick="loadPreset(${preset.id})">${translations[currentLanguage].loadPreset}</button>
+                <button class="preset-btn delete-btn" onclick="deletePreset(${preset.id})">${translations[currentLanguage].deletePreset}</button>
             </div>
         </div>`).join('');
 }
 
+// ─────────────────────────────────────────────
+//  UNITS
+// ─────────────────────────────────────────────
 function toggleUnits() {
     currentUnit = currentUnit === 'metric' ? 'imperial' : 'metric';
     localStorage.setItem('unitSystem', currentUnit);
@@ -236,29 +227,78 @@ function getUnitSuffix(type) {
 }
 
 function convertInputValue(value, type) {
-    if (currentUnit === 'imperial') {
+    if (currentUnit === 'imperial')
         return type === 'length' ? value * unitConversions.ftToM : value * unitConversions.inToMm;
-    }
     return value;
 }
+
+// ─────────────────────────────────────────────
+//  REVERSE MODE
+// ─────────────────────────────────────────────
+
+// Which fields can be solved for each product
+const reverseOptions = {
+    wire: ['length', 'amount', 'diameter'],
+    square: ['length', 'amount', 'width'],
+    hexagon: ['length', 'amount', 'diameter'],
+    pipe: ['length', 'amount', 'wallThickness'],
+    squarePipe: ['length', 'amount', 'wallThickness'],
+    sheet: ['length', 'amount', 'width', 'thickness'],
+    strip: ['length', 'amount', 'width', 'thickness'],
+    flatbar: ['length', 'amount', 'width', 'thickness'],
+    beam: ['length', 'amount'],
+    channel: ['length', 'amount', 'wallThickness'],
+    corner: ['length', 'amount', 'wallThickness'],
+};
+
+// Human-readable label key for each solvable field
+const reverseFieldLabels = {
+    length: 'length', amount: 'amount', diameter: 'diameter',
+    width: 'width', thickness: 'thickness', wallThickness: 'wallThickness',
+};
 
 function toggleReverseMode() {
     isReverseMode = !isReverseMode;
     const btn = document.getElementById('reverseModeBtn');
-    if (btn) {
-        btn.classList.toggle('active', isReverseMode);
-        btn.textContent = translations[currentLanguage].reverseMode || '⇄ Reverse Mode';
+    if (btn) btn.classList.toggle('active', isReverseMode);
+
+    const product = document.getElementById("productSelect").value;
+
+    // Set a sensible default solve-for when activating
+    if (isReverseMode && product) {
+        const opts = reverseOptions[product] || ['length'];
+        if (!opts.includes(reverseTarget)) reverseTarget = opts[0];
     }
+
+    if (product) onProductChange(product);
+    updateCalcButton();
+}
+
+function onReverseSolveChange(value) {
+    reverseTarget = value;
     const product = document.getElementById("productSelect").value;
     if (product) onProductChange(product);
-    const calcBtn = document.querySelector('.btn-primary[onclick="calculateWeight()"]');
-    if (calcBtn) {
-        calcBtn.textContent = isReverseMode
-            ? (translations[currentLanguage].calculateLength || 'Calculate Length')
-            : translations[currentLanguage].calculateWeight;
+    updateCalcButton();
+}
+
+function updateCalcButton() {
+    const calcBtn = document.getElementById('calcBtn');
+    if (!calcBtn) return;
+    const L = translations[currentLanguage];
+    if (!isReverseMode) {
+        calcBtn.textContent = L.calculateWeight;
+        calcBtn.onclick = () => calculateWeight();
+    } else {
+        const fieldKey = reverseFieldLabels[reverseTarget] || reverseTarget;
+        const fieldName = L[fieldKey]?.replace(/\(.*\)/, '').trim() || reverseTarget;
+        calcBtn.textContent = `⇄ ${L.calculateFor || 'Find'}: ${fieldName}`;
+        calcBtn.onclick = () => calculateReverse();
     }
 }
 
+// ─────────────────────────────────────────────
+//  BUILD INPUTS
+// ─────────────────────────────────────────────
 function onProductChange(product) {
     const diagramImage = document.getElementById("diagramImage");
     const diagramTitle = document.getElementById("diagramTitle");
@@ -266,10 +306,10 @@ function onProductChange(product) {
 
     if (!product) {
         diagramTitle.textContent = translations[currentLanguage].pleaseSelectProduct;
-        diagramImage.src = "";
-        diagramImage.style.display = "none";
+        diagramImage.src = ""; diagramImage.style.display = "none";
         inputArea.innerHTML = "";
         document.getElementById("result").innerText = "";
+        updateCalcButton();
         return;
     }
 
@@ -281,10 +321,34 @@ function onProductChange(product) {
     const L = translations[currentLanguage];
     const lbl = key => L[key]?.replace(/\(.*\)/, '').trim() || key;
 
+    // Ensure reverseTarget is valid for this product
+    if (isReverseMode) {
+        const opts = reverseOptions[product] || ['length'];
+        if (!opts.includes(reverseTarget)) reverseTarget = opts[0];
+    }
+
     let inputs = "";
 
-    const addField = (id, labelKey, unit, isLengthField = false) => {
-        if (isReverseMode && isLengthField) {
+    // Reverse "solve for" selector
+    if (isReverseMode) {
+        const opts = reverseOptions[product] || ['length'];
+        const weightUnit = currentUnit === 'metric' ? 'kg' : 'lbs';
+        inputs += `
+        <div class="form-group reverse-solve-group">
+            <label>${L.solveFor || 'Solve for'}:</label>
+            <select class="form-control reverse-solve-select" onchange="onReverseSolveChange(this.value)">
+                ${opts.map(o => `<option value="${o}" ${o === reverseTarget ? 'selected' : ''}>${lbl(reverseFieldLabels[o])}</option>`).join('')}
+            </select>
+        </div>
+        <div class="form-group reverse-weight-field">
+            <label>${L.targetWeight || 'Target Weight'} (${weightUnit}):</label>
+            <input type="number" step="any" id="targetWeight" class="form-control" autocomplete="off"/>
+        </div>`;
+    }
+
+    const addField = (id, labelKey, unit) => {
+        const isTarget = isReverseMode && id === reverseTarget;
+        if (isTarget) {
             return `<div class="form-group reverse-target">
                 <label>${lbl(labelKey)} ${unit} <span class="reverse-badge">${L.reverseTarget || 'TARGET'}</span>:</label>
                 <input type="number" step="any" id="${id}" class="form-control reverse-input" autocomplete="off" placeholder="?" disabled/>
@@ -296,68 +360,69 @@ function onProductChange(product) {
         </div>`;
     };
 
-    const amountField = `<div class="form-group"><label>${L.amount}:</label><input type="number" step="any" id="amount" class="form-control" autocomplete="off"/></div>`;
-
-    if (isReverseMode) {
-        const weightUnit = currentUnit === 'metric' ? 'kg' : 'lbs';
-        inputs += `<div class="form-group reverse-weight-field">
-            <label>${L.targetWeight || 'Target Weight'} (${weightUnit}):</label>
-            <input type="number" step="any" id="targetWeight" class="form-control" autocomplete="off"/>
-        </div>`;
-    }
+    const amountField = (id = 'amount') => {
+        const isTarget = isReverseMode && id === reverseTarget;
+        if (isTarget) {
+            return `<div class="form-group reverse-target">
+                <label>${lbl('amount')} <span class="reverse-badge">${L.reverseTarget || 'TARGET'}</span>:</label>
+                <input type="number" step="any" id="${id}" class="form-control reverse-input" autocomplete="off" placeholder="?" disabled/>
+            </div>`;
+        }
+        return `<div class="form-group"><label>${L.amount}:</label><input type="number" step="any" id="${id}" class="form-control" autocomplete="off"/></div>`;
+    };
 
     switch (product) {
         case "wire":
             inputs += addField('diameter', 'diameter', dimUnit);
-            inputs += addField('length', 'length', lengthUnit, true);
-            inputs += amountField;
+            inputs += addField('length', 'length', lengthUnit);
+            inputs += amountField();
             break;
         case "pipe":
             inputs += addField('diameter', 'diameter', dimUnit);
             inputs += addField('wallThickness', 'wallThickness', dimUnit);
-            inputs += addField('length', 'length', lengthUnit, true);
-            inputs += amountField;
+            inputs += addField('length', 'length', lengthUnit);
+            inputs += amountField();
             break;
         case "square":
             inputs += addField('width', 'width', dimUnit);
-            inputs += addField('length', 'length', lengthUnit, true);
-            inputs += amountField;
+            inputs += addField('length', 'length', lengthUnit);
+            inputs += amountField();
             break;
         case "squarePipe":
             inputs += addField('width', 'width', dimUnit);
             inputs += addField('height', 'height', dimUnit);
             inputs += addField('wallThickness', 'wallThickness', dimUnit);
-            inputs += addField('length', 'length', lengthUnit, true);
-            inputs += amountField;
+            inputs += addField('length', 'length', lengthUnit);
+            inputs += amountField();
             break;
         case "sheet":
         case "strip":
         case "flatbar":
             inputs += addField('width', 'width', dimUnit);
             inputs += addField('thickness', 'thickness', dimUnit);
-            inputs += addField('length', 'length', lengthUnit, true);
-            inputs += amountField;
+            inputs += addField('length', 'length', lengthUnit);
+            inputs += amountField();
             break;
         case "hexagon":
             inputs += addField('diameter', 'diameter', dimUnit);
-            inputs += addField('length', 'length', lengthUnit, true);
-            inputs += amountField;
+            inputs += addField('length', 'length', lengthUnit);
+            inputs += amountField();
             break;
         case "beam":
             inputs += addField('width', 'width', dimUnit);
             inputs += addField('height', 'height', dimUnit);
             inputs += addField('lintelThickness', 'lintelThickness', dimUnit);
             inputs += addField('shelvesThickness', 'shelfThickness', dimUnit);
-            inputs += addField('length', 'length', lengthUnit, true);
-            inputs += amountField;
+            inputs += addField('length', 'length', lengthUnit);
+            inputs += amountField();
             break;
         case "channel":
         case "corner":
             inputs += addField('width', 'width', dimUnit);
             inputs += addField('height', 'height', dimUnit);
             inputs += addField('wallThickness', 'wallThickness', dimUnit);
-            inputs += addField('length', 'length', lengthUnit, true);
-            inputs += amountField;
+            inputs += addField('length', 'length', lengthUnit);
+            inputs += amountField();
             break;
     }
 
@@ -366,31 +431,34 @@ function onProductChange(product) {
     inputArea.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', debounce(liveCalculate, 300));
     });
+    inputArea.querySelectorAll('select').forEach(sel => {
+        // reverse-solve-select is handled by onchange directly
+    });
     document.getElementById('metalSelect')?.addEventListener('change', debounce(liveCalculate, 100));
     document.getElementById('pricePerKg')?.addEventListener('input', debounce(liveCalculate, 300));
 
     diagramTitle.innerText = `${L.diagram}: ${L[product]}`;
+    updateCalcButton();
 }
 
+// ─────────────────────────────────────────────
+//  VOLUME FACTOR
+// ─────────────────────────────────────────────
 function computeVolumeFactor(product, dims) {
     const { d, w, h, t, wall, middleT, shelvesT } = dims;
     switch (product) {
-        case "wire":
-            return Math.PI * Math.pow(d / 20, 2);
+        case "wire": return Math.PI * Math.pow(d / 20, 2);
         case "pipe": {
             const oR = d / 2, iR = oR - wall;
             return Math.PI * (Math.pow(oR / 10, 2) - Math.pow(iR / 10, 2));
         }
-        case "square":
-            return (w / 10) * (w / 10);
+        case "square": return (w / 10) * (w / 10);
         case "squarePipe": {
             const oA = (w / 10) * (h / 10);
             const iA = ((w - 2 * wall) / 10) * ((h - 2 * wall) / 10);
             return oA - iA;
         }
-        case "sheet":
-        case "strip":
-        case "flatbar":
+        case "sheet": case "strip": case "flatbar":
             return (w / 10) * (t / 10);
         case "hexagon": {
             const side = d / (2 * Math.cos(Math.PI / 6));
@@ -433,6 +501,9 @@ const densities = {
     steel: 7.85, lead: 11.34, titanium: 4.51, nickel: 8.9, brass: 8.73
 };
 
+// ─────────────────────────────────────────────
+//  LIVE CALCULATE
+// ─────────────────────────────────────────────
 function debounce(fn, ms) {
     let timer;
     return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
@@ -442,19 +513,27 @@ function liveCalculate() {
     const product = document.getElementById("productSelect").value;
     const metal = document.getElementById("metalSelect").value;
     if (!product || !metal) return;
-    const inputs = document.querySelectorAll('#dynamicInputs input:not(.reverse-input):not([id="targetWeight"]):not([id="amount"])');
-    for (const inp of inputs) {
-        if (!inp.value || isNaN(parseFloat(inp.value))) return;
-    }
+
     if (isReverseMode) {
-        calculateLength(true);
+        // Need: targetWeight + all fields except the target field
+        const tw = parseFloat(document.getElementById("targetWeight")?.value);
+        if (!tw || isNaN(tw)) return;
+        const inputs = document.querySelectorAll(`#dynamicInputs input:not(.reverse-input):not([id="targetWeight"])`);
+        for (const inp of inputs) {
+            if (!inp.value || isNaN(parseFloat(inp.value))) return;
+        }
+        calculateReverse(true);
     } else {
+        const inputs = document.querySelectorAll('#dynamicInputs input:not([id="amount"])');
+        for (const inp of inputs) {
+            if (!inp.value || isNaN(parseFloat(inp.value))) return;
+        }
         calculateWeight(true);
     }
 }
 
 // ─────────────────────────────────────────────
-//  CALCULATE WEIGHT  ← BUG FIXED HERE
+//  CALCULATE WEIGHT (forward)
 // ─────────────────────────────────────────────
 function calculateWeight(silent = false) {
     const product = document.getElementById("productSelect").value;
@@ -476,16 +555,12 @@ function calculateWeight(silent = false) {
     }
 
     const vf = computeVolumeFactor(product, dims);
-    const volume = vf * (length / 10);  // ← FIXED: was (vf * length)
+    const volume = vf * (length / 10);
     const density = densities[metal] || 0;
-    let weight = (volume * density * amount / 100);
+    let weight = volume * density * amount / 100;
 
     let weightUnit = 'kg';
-    if (currentUnit === 'imperial') {
-        weight *= unitConversions.kgToLbs;
-        weightUnit = 'lbs';
-    }
-
+    if (currentUnit === 'imperial') { weight *= unitConversions.kgToLbs; weightUnit = 'lbs'; }
     weight = Math.round(weight * 100) / 100;
 
     const L = translations[currentLanguage];
@@ -493,24 +568,21 @@ function calculateWeight(silent = false) {
     const weightKg = currentUnit === 'imperial' ? weight * unitConversions.lbsToKg : weight;
 
     let resultHTML = `<div class="result-main">${L.weight}: <strong>${weight} ${weightUnit}</strong></div>`;
-
     if (pricePerKg > 0) {
         const cost = (weightKg * pricePerKg).toFixed(2);
         const currency = document.getElementById("currency")?.value || '';
-        resultHTML += `<div class="result-cost">${L.estimatedCost || 'Estimated Cost'}: <strong>${cost} ${currency}</strong></div>`;
+        resultHTML += `<div class="result-cost">${L.estimatedCost}: <strong>${cost} ${currency}</strong></div>`;
     }
 
     document.getElementById("result").innerHTML = resultHTML;
-
-    if (!silent && weight > 0) {
+    if (!silent && weight > 0)
         addToHistory({ product, metal, weight, weightUnit, length: parseInput("length"), amount, pricePerKg });
-    }
 }
 
 // ─────────────────────────────────────────────
-//  CALCULATE LENGTH (REVERSE)  ← BUG FIXED HERE
+//  CALCULATE REVERSE (find any field)
 // ─────────────────────────────────────────────
-function calculateLength(silent = false) {
+function calculateReverse(silent = false) {
     const product = document.getElementById("productSelect").value;
     const metal = document.getElementById("metalSelect").value;
 
@@ -520,45 +592,191 @@ function calculateLength(silent = false) {
     }
     if (!product || !metal) return;
 
-    const dims = getDims();
-    let targetWeight = parseInput("targetWeight");
-    const amount = parseInput("amount") || 1;
+    let targetWeightInput = parseInput("targetWeight");
+    if (!targetWeightInput) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + (translations[currentLanguage].targetWeight || 'Target Weight')); return; }
 
-    if (!targetWeight) return;
-
-    if (currentUnit === 'imperial') targetWeight *= unitConversions.lbsToKg;
+    // Convert to kg
+    let targetWeightKg = currentUnit === 'imperial' ? targetWeightInput * unitConversions.lbsToKg : targetWeightInput;
 
     const density = densities[metal] || 0;
-    if (!density) return;
+    const L = translations[currentLanguage];
+    const dimUnit = currentUnit === 'metric' ? 'mm' : 'in';
+    const lenUnit = currentUnit === 'metric' ? 'm' : 'ft';
 
-    const vf = computeVolumeFactor(product, dims);
-    if (!vf) return;
+    // weight(kg) = vf(dims) * (lengthCm/10) * density * amount / 100
+    // → common factor K = targetWeightKg * 1000 / (density * amount_or_1)
 
-    // weight(kg) = vf * (lengthCm/10) * density * amount / 100
-    // → lengthCm = targetWeight * 100 * 10 / (vf * density * amount)
-    const lengthCm = (targetWeight * 1000) / (vf * density * amount);  // ← FIXED: was *100
-    let lengthM = lengthCm / 100;
+    let result = null;
+    let resultLabel = '';
+    let resultUnit = '';
+    let fieldId = reverseTarget;
 
-    let lengthUnit = 'm';
-    if (currentUnit === 'imperial') {
-        lengthM *= unitConversions.mToFt;
-        lengthUnit = 'ft';
+    const dims = getDims(); // reads all filled-in fields
+
+    if (reverseTarget === 'length') {
+        const amount = parseInput("amount") || 1;
+        const vf = computeVolumeFactor(product, dims);
+        if (!vf) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": dimensions"); return; }
+        let lengthCm = (targetWeightKg * 1000) / (vf * density * amount);
+        let lengthM = lengthCm / 100;
+        if (currentUnit === 'imperial') { lengthM *= unitConversions.mToFt; }
+        result = Math.round(lengthM * 1000) / 1000;
+        resultLabel = L.requiredLength || 'Required Length';
+        resultUnit = lenUnit;
+
+    } else if (reverseTarget === 'amount') {
+        const length = convertInputValue(parseInput("length"), 'length') * 100;
+        if (!length) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.length); return; }
+        const vf = computeVolumeFactor(product, dims);
+        if (!vf) return;
+        result = targetWeightKg * 1000 / (vf * (length / 10) * density / 100) / 100;
+        // Simplify: weight = vf*(length/10)*density*amount/100  →  amount = weight*1000/(vf*(length/10)*density)
+        result = (targetWeightKg * 1000) / (vf * (length / 10) * density);
+        result = Math.round(result * 100) / 100;
+        resultLabel = L.requiredAmount || 'Required Amount';
+        resultUnit = L.pcs || 'pcs';
+
+    } else if (reverseTarget === 'diameter') {
+        // Solve for d (wire/hex/pipe outer diameter)
+        const amount = parseInput("amount") || 1;
+        const length = convertInputValue(parseInput("length"), 'length') * 100;
+        if (!length) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.length); return; }
+        // weight = vf(d) * (length/10) * density * amount / 100
+        // Required cross-section vf = weight*1000 / ((length/10)*density*amount)
+        const requiredVf = (targetWeightKg * 1000) / ((length / 10) * density * amount);
+
+        if (product === 'wire') {
+            // vf = π*(d/20)²  →  d = 20*sqrt(vf/π)
+            const d_mm = 20 * Math.sqrt(requiredVf / Math.PI);
+            result = currentUnit === 'imperial' ? d_mm * unitConversions.mmToIn : d_mm;
+        } else if (product === 'hexagon') {
+            // vf = (3√3/2)*side²/100 where side = d/(2cos30°) — solve for d
+            // vf = (3√3/2) * (d/(2cos30°)/10)²
+            const side_cm = Math.sqrt(requiredVf / (3 * Math.sqrt(3) / 2));
+            const d_mm = side_cm * 10 * 2 * Math.cos(Math.PI / 6);
+            result = currentUnit === 'imperial' ? d_mm * unitConversions.mmToIn : d_mm;
+        } else if (product === 'pipe') {
+            // wall is known, solve for outer diameter d
+            const wall = dims.wall;
+            // vf = π*((d/2)/10)² - π*((d/2-wall)/10)²
+            // = π/100 * [(d/2)² - (d/2-wall)²]
+            // = π/100 * [d*wall/1 - wall²]  ... expansion: a²-b² = (a+b)(a-b)
+            // Let r=d/2: vf = π/100*(r²-(r-wall)²) = π/100*(2r*wall-wall²)
+            // requiredVf = π/100*(d*wall - wall²)
+            // d*wall - wall² = requiredVf*100/π
+            // d = (requiredVf*100/π + wall²) / wall
+            const d_mm = (requiredVf * 100 / Math.PI + wall * wall) / wall;
+            result = currentUnit === 'imperial' ? d_mm * unitConversions.mmToIn : d_mm;
+        }
+        result = Math.round(result * 100) / 100;
+        resultLabel = L.requiredDiameter || ('Required ' + (L.diameter?.replace(/\(.*\)/, '').trim() || 'Diameter'));
+        resultUnit = dimUnit;
+
+    } else if (reverseTarget === 'width') {
+        const amount = parseInput("amount") || 1;
+        const length = convertInputValue(parseInput("length"), 'length') * 100;
+        if (!length) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.length); return; }
+        const requiredVf = (targetWeightKg * 1000) / ((length / 10) * density * amount);
+
+        let w_mm = 0;
+        if (product === 'square') {
+            // vf = (w/10)²  →  w = 10*sqrt(vf)
+            w_mm = 10 * Math.sqrt(requiredVf);
+        } else if (['sheet', 'strip', 'flatbar'].includes(product)) {
+            // vf = (w/10)*(t/10)  →  w = vf*100/t
+            const t = dims.t;
+            if (!t) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.thickness); return; }
+            w_mm = requiredVf * 100 / t;
+        }
+        result = currentUnit === 'imperial' ? w_mm * unitConversions.mmToIn : w_mm;
+        result = Math.round(result * 100) / 100;
+        resultLabel = L.requiredWidth || ('Required ' + (L.width?.replace(/\(.*\)/, '').trim() || 'Width'));
+        resultUnit = dimUnit;
+
+    } else if (reverseTarget === 'thickness') {
+        const amount = parseInput("amount") || 1;
+        const length = convertInputValue(parseInput("length"), 'length') * 100;
+        if (!length) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.length); return; }
+        const requiredVf = (targetWeightKg * 1000) / ((length / 10) * density * amount);
+        // vf = (w/10)*(t/10)  →  t = vf*100/w
+        const w = dims.w;
+        if (!w) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.width); return; }
+        let t_mm = requiredVf * 100 / w;
+        result = currentUnit === 'imperial' ? t_mm * unitConversions.mmToIn : t_mm;
+        result = Math.round(result * 100) / 100;
+        resultLabel = L.requiredThickness || ('Required ' + (L.thickness?.replace(/\(.*\)/, '').trim() || 'Thickness'));
+        resultUnit = dimUnit;
+
+    } else if (reverseTarget === 'wallThickness') {
+        const amount = parseInput("amount") || 1;
+        const length = convertInputValue(parseInput("length"), 'length') * 100;
+        if (!length) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.length); return; }
+        const requiredVf = (targetWeightKg * 1000) / ((length / 10) * density * amount);
+
+        let wall_mm = 0;
+        if (product === 'pipe') {
+            // vf = π/100*(d*wall/2... use numeric solver (iterate) — wall affects both terms
+            // π*((d/2/10)² - ((d/2-wall)/10)²) = requiredVf
+            // Let R = d/2 (mm), solve: π/100*(R² - (R-wall)²) = requiredVf
+            // R² - (R-wall)² = requiredVf*100/π
+            // 2R*wall - wall² = requiredVf*100/π
+            // wall² - 2R*wall + requiredVf*100/π = 0  (quadratic in wall)
+            const R = dims.d / 2;
+            const C = requiredVf * 100 / Math.PI;
+            // wall = R - sqrt(R² - C)
+            const discriminant = R * R - C;
+            if (discriminant < 0) { if (!silent) showCustomAlert('Target weight too high for this pipe diameter.'); return; }
+            wall_mm = R - Math.sqrt(discriminant);
+        } else if (product === 'squarePipe') {
+            // vf = (w/10)*(h/10) - ((w-2wall)/10)*((h-2wall)/10)
+            // Expand: vf = [wh - (w-2wall)(h-2wall)] / 100
+            // = [wh - wh + 2wall*h + 2wall*w - 4wall²] / 100
+            // = [2wall(w+h) - 4wall²] / 100
+            // 4wall² - 2wall(w+h) + vf*100 = 0
+            const w = dims.w, h = dims.h;
+            const a = 4, b = -2 * (w + h), c = requiredVf * 100;
+            const disc = b * b - 4 * a * c;
+            if (disc < 0) { if (!silent) showCustomAlert('Target weight too high for these dimensions.'); return; }
+            // Take smaller root (thinner wall makes physical sense)
+            wall_mm = (-b - Math.sqrt(disc)) / (2 * a);
+        } else if (['channel', 'corner'].includes(product)) {
+            // These are harder to invert analytically — use binary search
+            const w = dims.w, h = dims.h;
+            let lo = 0.01, hi = Math.min(w, h) / 2;
+            for (let i = 0; i < 60; i++) {
+                const mid = (lo + hi) / 2;
+                const testDims = { ...dims, wall: mid };
+                const testVf = computeVolumeFactor(product, testDims);
+                if (testVf < requiredVf) lo = mid; else hi = mid;
+            }
+            wall_mm = (lo + hi) / 2;
+        }
+        result = currentUnit === 'imperial' ? wall_mm * unitConversions.mmToIn : wall_mm;
+        result = Math.round(result * 100) / 100;
+        resultLabel = L.requiredWallThickness || ('Required ' + (L.wallThickness?.replace(/\(.*\)/, '').trim() || 'Wall Thickness'));
+        resultUnit = dimUnit;
     }
 
-    lengthM = Math.round(lengthM * 1000) / 1000;
+    if (result === null || isNaN(result) || result <= 0) {
+        if (!silent) showCustomAlert(translations[currentLanguage].error + ': ' + (translations[currentLanguage].invalidInput || 'invalid input or unsolvable'));
+        return;
+    }
 
-    const L = translations[currentLanguage];
     document.getElementById("result").innerHTML =
-        `<div class="result-main">${L.requiredLength || 'Required Length'}: <strong>${lengthM} ${lengthUnit}</strong></div>`;
+        `<div class="result-main">${resultLabel}: <strong>${result} ${resultUnit}</strong></div>`;
 
-    const lenInput = document.getElementById("length");
-    if (lenInput) {
-        lenInput.value = lengthM;
-        lenInput.classList.add('result-highlight');
-        setTimeout(() => lenInput.classList.remove('result-highlight'), 1500);
+    // Flash the target field and fill it in
+    const targetInput = document.getElementById(fieldId);
+    if (targetInput) {
+        targetInput.value = result;
+        targetInput.classList.add('result-highlight');
+        setTimeout(() => targetInput.classList.remove('result-highlight'), 1500);
     }
 }
 
+// ─────────────────────────────────────────────
+//  HISTORY
+// ─────────────────────────────────────────────
 function addToHistory(entry) {
     const item = { id: Date.now(), timestamp: new Date().toLocaleString(), ...entry };
     calculationHistory.unshift(item);
@@ -572,7 +790,7 @@ function updateHistoryPanel() {
     if (!container) return;
     const L = translations[currentLanguage];
     if (calculationHistory.length === 0) {
-        container.innerHTML = `<p class="no-presets">${L.noHistory || 'No history yet'}</p>`;
+        container.innerHTML = `<p class="no-presets">${L.noHistory}</p>`;
         return;
     }
     container.innerHTML = calculationHistory.map(item => `
@@ -594,7 +812,7 @@ function reloadHistory(id) {
     setTimeout(() => {
         if (document.getElementById("length")) document.getElementById("length").value = item.length;
         if (document.getElementById("amount")) document.getElementById("amount").value = item.amount;
-        showSuccessMessage(translations[currentLanguage].historyLoaded || 'Loaded from history');
+        showSuccessMessage(translations[currentLanguage].historyLoaded);
     }, 100);
 }
 
@@ -604,6 +822,9 @@ function clearHistory() {
     updateHistoryPanel();
 }
 
+// ─────────────────────────────────────────────
+//  UTILS
+// ─────────────────────────────────────────────
 function parseInput(id) {
     const el = document.getElementById(id);
     if (!el) return 0;
@@ -635,6 +856,7 @@ function translateUI() {
     const titleEl = document.getElementById("diagramTitle");
     const L = translations[currentLanguage];
     titleEl.innerText = product ? `${L.diagram}: ${L[product]}` : L.pleaseSelectProduct;
+    updateCalcButton();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -645,4 +867,5 @@ document.addEventListener("DOMContentLoaded", () => {
     updateUnitButton();
     updatePresetsList();
     updateHistoryPanel();
+    updateCalcButton();
 });

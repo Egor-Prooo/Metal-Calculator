@@ -3,7 +3,6 @@
 }
 
 <div class="calculator-container">
-    <!-- Sidebar -->
     <div class="sidebar">
         <h3 data-translate="pageTitle">@ViewData["Title"]</h3>
 
@@ -49,7 +48,7 @@
                 <input type="number" step="any" id="pricePerKg" class="form-control cost-price"
                        placeholder="0.00" autocomplete="off" />
                 <input type="text" id="currency" class="form-control cost-currency"
-                       placeholder="BGN" maxlength="5" autocomplete="off" />
+                       placeholder="Cur." maxlength="5" autocomplete="off" />
             </div>
         </div>
 
@@ -70,9 +69,7 @@
         <!-- Presets Section -->
         <div class="presets-section">
             <h4 data-translate="presets">Шаблони</h4>
-            <button class="btn btn-success" onclick="savePreset()" data-translate="savePreset">
-                Запази шаблон
-            </button>
+            <button class="btn btn-success" onclick="savePreset()" data-translate="savePreset">Запази шаблон</button>
             <div id="presetsContainer" class="presets-list">
                 <p class="no-presets" data-translate="noPresets">Няма запазени шаблони</p>
             </div>
@@ -102,7 +99,7 @@
     </div>
 
     <!-- Content Area -->
-    <div class="content" style="background-image: url('@Url.Content("~/diagrams/")');">
+    <div class="content">
         <h4 id="diagramTitle" data-translate="pleaseSelectProduct">Моля изберете продукт</h4>
         <img id="diagramImage" src="" class="diagram" style="display:none;" />
 
@@ -110,7 +107,7 @@
 
         <br />
 
-        <button class="btn btn-primary" onclick="calculateWeight()" data-translate="calculateWeight">
+        <button id="calcBtn" class="btn btn-primary" onclick="calculateWeight()" data-translate="calculateWeight">
             Изчисли теглото
         </button>
 
