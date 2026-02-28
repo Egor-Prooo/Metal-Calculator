@@ -558,6 +558,7 @@ function setLanguage(lang) {
     currentLanguage = lang;
     localStorage.setItem('lang', lang);
     translateUI();
+    updateUnitButton(); // <-- FIX: update button text when language changes
     updatePresetsList();
 
     const product = document.getElementById("productSelect").value;
