@@ -280,6 +280,7 @@ function onReverseSolveChange(value) {
 function updateCalcButton() {
     const calcBtn = document.getElementById('calcBtn');
     if (!calcBtn) return;
+    if (typeof translations === 'undefined' || !translations[currentLanguage]) return;
     const L = translations[currentLanguage];
     if (!isReverseMode) {
         calcBtn.textContent = L.calculateWeight;
