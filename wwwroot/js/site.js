@@ -3,7 +3,7 @@ let currentUnit = 'metric';
 let presets = JSON.parse(localStorage.getItem('metalCalcPresets') || '[]');
 let calculationHistory = JSON.parse(localStorage.getItem('metalCalcHistory') || '[]');
 let isReverseMode = false;
-let reverseTarget = 'length'; // which field to solve for
+let reverseTarget = 'length';
 
 const unitConversions = {
     mToFt: 3.28084, ftToM: 0.3048,
@@ -235,14 +235,12 @@ function convertInputValue(value, type) {
 // ─────────────────────────────────────────────
 //  REVERSE MODE
 // ─────────────────────────────────────────────
-
-// Which fields can be solved for each product
 const reverseOptions = {
     wire: ['length', 'amount', 'diameter'],
     square: ['length', 'amount', 'width'],
     hexagon: ['length', 'amount', 'diameter'],
-    pipe: ['length', 'amount', 'wallThickness'],
-    squarePipe: ['length', 'amount', 'wallThickness'],
+    pipe: ['length', 'amount', 'diameter', 'wallThickness'],
+    squarePipe: ['length', 'amount', 'width', 'wallThickness'],
     sheet: ['length', 'amount', 'width', 'thickness'],
     strip: ['length', 'amount', 'width', 'thickness'],
     flatbar: ['length', 'amount', 'width', 'thickness'],
@@ -251,7 +249,6 @@ const reverseOptions = {
     corner: ['length', 'amount', 'wallThickness'],
 };
 
-// Human-readable label key for each solvable field
 const reverseFieldLabels = {
     length: 'length', amount: 'amount', diameter: 'diameter',
     width: 'width', thickness: 'thickness', wallThickness: 'wallThickness',
@@ -264,7 +261,6 @@ function toggleReverseMode() {
 
     const product = document.getElementById("productSelect").value;
 
-    // Set a sensible default solve-for when activating
     if (isReverseMode && product) {
         const opts = reverseOptions[product] || ['length'];
         if (!opts.includes(reverseTarget)) reverseTarget = opts[0];
@@ -290,8 +286,9 @@ function updateCalcButton() {
         calcBtn.onclick = () => calculateWeight();
     } else {
         const fieldKey = reverseFieldLabels[reverseTarget] || reverseTarget;
-        const fieldName = L[fieldKey]?.replace(/\(.*\)/, '').trim() || reverseTarget;
-        calcBtn.textContent = `⇄ ${L.calculateFor || 'Find'}: ${fieldName}`;
+        const rawLabel = L[fieldKey];
+        const fieldName = rawLabel ? rawLabel.replace(/\(.*\)/, '').trim() : fieldKey;
+        calcBtn.textContent = `⇄ ${L.solveFor}: ${fieldName}`;
         calcBtn.onclick = () => calculateReverse();
     }
 }
@@ -321,7 +318,6 @@ function onProductChange(product) {
     const L = translations[currentLanguage];
     const lbl = key => L[key]?.replace(/\(.*\)/, '').trim() || key;
 
-    // Ensure reverseTarget is valid for this product
     if (isReverseMode) {
         const opts = reverseOptions[product] || ['length'];
         if (!opts.includes(reverseTarget)) reverseTarget = opts[0];
@@ -329,13 +325,12 @@ function onProductChange(product) {
 
     let inputs = "";
 
-    // Reverse "solve for" selector
     if (isReverseMode) {
         const opts = reverseOptions[product] || ['length'];
         const weightUnit = currentUnit === 'metric' ? 'kg' : 'lbs';
         inputs += `
         <div class="form-group reverse-solve-group">
-            <label>${L.solveFor || 'Solve for'}:</label>
+            <label>${L.solveFor}:</label>
             <select class="form-control reverse-solve-select" onchange="onReverseSolveChange(this.value)">
                 ${opts.map(o => `<option value="${o}" ${o === reverseTarget ? 'selected' : ''}>${lbl(reverseFieldLabels[o])}</option>`).join('')}
             </select>
@@ -431,9 +426,6 @@ function onProductChange(product) {
     inputArea.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', debounce(liveCalculate, 300));
     });
-    inputArea.querySelectorAll('select').forEach(sel => {
-        // reverse-solve-select is handled by onchange directly
-    });
     document.getElementById('metalSelect')?.addEventListener('change', debounce(liveCalculate, 100));
     document.getElementById('pricePerKg')?.addEventListener('input', debounce(liveCalculate, 300));
 
@@ -515,11 +507,11 @@ function liveCalculate() {
     if (!product || !metal) return;
 
     if (isReverseMode) {
-        // Need: targetWeight + all fields except the target field
         const tw = parseFloat(document.getElementById("targetWeight")?.value);
         if (!tw || isNaN(tw)) return;
         const inputs = document.querySelectorAll(`#dynamicInputs input:not(.reverse-input):not([id="targetWeight"])`);
         for (const inp of inputs) {
+            if (inp.id === 'amount') continue; // amount is optional
             if (!inp.value || isNaN(parseFloat(inp.value))) return;
         }
         calculateReverse(true);
@@ -529,6 +521,26 @@ function liveCalculate() {
             if (!inp.value || isNaN(parseFloat(inp.value))) return;
         }
         calculateWeight(true);
+    }
+}
+
+// ─────────────────────────────────────────────
+//  REQUIRED FIELDS PER PRODUCT
+// ─────────────────────────────────────────────
+function getRequiredDimFields(product) {
+    switch (product) {
+        case 'wire': return ['diameter'];
+        case 'square': return ['width'];
+        case 'hexagon': return ['diameter'];
+        case 'pipe': return ['diameter', 'wallThickness'];
+        case 'squarePipe': return ['width', 'height', 'wallThickness'];
+        case 'sheet':
+        case 'strip':
+        case 'flatbar': return ['width', 'thickness'];
+        case 'beam': return ['width', 'height', 'lintelThickness', 'shelvesThickness'];
+        case 'channel':
+        case 'corner': return ['width', 'height', 'wallThickness'];
+        default: return [];
     }
 }
 
@@ -545,12 +557,30 @@ function calculateWeight(silent = false) {
     }
     if (!product || !metal) return;
 
+    const L = translations[currentLanguage];
+
+    if (!silent) {
+        for (const fieldId of getRequiredDimFields(product)) {
+            const val = parseInput(fieldId);
+            if (!val || val <= 0) {
+                const labelKey = fieldId === 'shelvesThickness' ? 'shelfThickness' : fieldId;
+                const fieldName = L[labelKey]?.replace(/\(.*\)/, '').trim() || fieldId;
+                showCustomAlert(`${L.pleaseInput}: ${fieldName}`);
+                const el = document.getElementById(fieldId);
+                if (el) { el.classList.add('input-error'); setTimeout(() => el.classList.remove('input-error'), 1500); }
+                return;
+            }
+        }
+    }
+
     const dims = getDims();
     const length = convertInputValue(parseInput("length"), 'length') * 100;
     const amount = parseInput("amount") || 1;
 
     if (!silent && !length) {
-        showCustomAlert(translations[currentLanguage].pleaseInput + ": " + translations[currentLanguage].length);
+        showCustomAlert(`${L.pleaseInput}: ${L.length?.replace(/\(.*\)/, '').trim()}`);
+        const el = document.getElementById('length');
+        if (el) { el.classList.add('input-error'); setTimeout(() => el.classList.remove('input-error'), 1500); }
         return;
     }
 
@@ -563,7 +593,6 @@ function calculateWeight(silent = false) {
     if (currentUnit === 'imperial') { weight *= unitConversions.kgToLbs; weightUnit = 'lbs'; }
     weight = Math.round(weight * 100) / 100;
 
-    const L = translations[currentLanguage];
     const pricePerKg = parseFloat(document.getElementById("pricePerKg")?.value) || 0;
     const weightKg = currentUnit === 'imperial' ? weight * unitConversions.lbsToKg : weight;
 
@@ -580,7 +609,7 @@ function calculateWeight(silent = false) {
 }
 
 // ─────────────────────────────────────────────
-//  CALCULATE REVERSE (find any field)
+//  CALCULATE REVERSE
 // ─────────────────────────────────────────────
 function calculateReverse(silent = false) {
     const product = document.getElementById("productSelect").value;
@@ -593,9 +622,11 @@ function calculateReverse(silent = false) {
     if (!product || !metal) return;
 
     let targetWeightInput = parseInput("targetWeight");
-    if (!targetWeightInput) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + (translations[currentLanguage].targetWeight || 'Target Weight')); return; }
+    if (!targetWeightInput) {
+        if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + (translations[currentLanguage].targetWeight || 'Target Weight'));
+        return;
+    }
 
-    // Convert to kg
     let targetWeightKg = currentUnit === 'imperial' ? targetWeightInput * unitConversions.lbsToKg : targetWeightInput;
 
     const density = densities[metal] || 0;
@@ -603,15 +634,12 @@ function calculateReverse(silent = false) {
     const dimUnit = currentUnit === 'metric' ? 'mm' : 'in';
     const lenUnit = currentUnit === 'metric' ? 'm' : 'ft';
 
-    // weight(kg) = vf(dims) * (lengthCm/10) * density * amount / 100
-    // → common factor K = targetWeightKg * 1000 / (density * amount_or_1)
-
     let result = null;
     let resultLabel = '';
     let resultUnit = '';
     let fieldId = reverseTarget;
 
-    const dims = getDims(); // reads all filled-in fields
+    const dims = getDims();
 
     if (reverseTarget === 'length') {
         const amount = parseInput("amount") || 1;
@@ -619,7 +647,7 @@ function calculateReverse(silent = false) {
         if (!vf) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": dimensions"); return; }
         let lengthCm = (targetWeightKg * 1000) / (vf * density * amount);
         let lengthM = lengthCm / 100;
-        if (currentUnit === 'imperial') { lengthM *= unitConversions.mToFt; }
+        if (currentUnit === 'imperial') lengthM *= unitConversions.mToFt;
         result = Math.round(lengthM * 1000) / 1000;
         resultLabel = L.requiredLength || 'Required Length';
         resultUnit = lenUnit;
@@ -629,42 +657,26 @@ function calculateReverse(silent = false) {
         if (!length) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.length); return; }
         const vf = computeVolumeFactor(product, dims);
         if (!vf) return;
-        result = targetWeightKg * 1000 / (vf * (length / 10) * density / 100) / 100;
-        // Simplify: weight = vf*(length/10)*density*amount/100  →  amount = weight*1000/(vf*(length/10)*density)
         result = (targetWeightKg * 1000) / (vf * (length / 10) * density);
         result = Math.round(result * 100) / 100;
         resultLabel = L.requiredAmount || 'Required Amount';
         resultUnit = L.pcs || 'pcs';
 
     } else if (reverseTarget === 'diameter') {
-        // Solve for d (wire/hex/pipe outer diameter)
         const amount = parseInput("amount") || 1;
         const length = convertInputValue(parseInput("length"), 'length') * 100;
         if (!length) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.length); return; }
-        // weight = vf(d) * (length/10) * density * amount / 100
-        // Required cross-section vf = weight*1000 / ((length/10)*density*amount)
         const requiredVf = (targetWeightKg * 1000) / ((length / 10) * density * amount);
 
         if (product === 'wire') {
-            // vf = π*(d/20)²  →  d = 20*sqrt(vf/π)
             const d_mm = 20 * Math.sqrt(requiredVf / Math.PI);
             result = currentUnit === 'imperial' ? d_mm * unitConversions.mmToIn : d_mm;
         } else if (product === 'hexagon') {
-            // vf = (3√3/2)*side²/100 where side = d/(2cos30°) — solve for d
-            // vf = (3√3/2) * (d/(2cos30°)/10)²
             const side_cm = Math.sqrt(requiredVf / (3 * Math.sqrt(3) / 2));
             const d_mm = side_cm * 10 * 2 * Math.cos(Math.PI / 6);
             result = currentUnit === 'imperial' ? d_mm * unitConversions.mmToIn : d_mm;
         } else if (product === 'pipe') {
-            // wall is known, solve for outer diameter d
             const wall = dims.wall;
-            // vf = π*((d/2)/10)² - π*((d/2-wall)/10)²
-            // = π/100 * [(d/2)² - (d/2-wall)²]
-            // = π/100 * [d*wall/1 - wall²]  ... expansion: a²-b² = (a+b)(a-b)
-            // Let r=d/2: vf = π/100*(r²-(r-wall)²) = π/100*(2r*wall-wall²)
-            // requiredVf = π/100*(d*wall - wall²)
-            // d*wall - wall² = requiredVf*100/π
-            // d = (requiredVf*100/π + wall²) / wall
             const d_mm = (requiredVf * 100 / Math.PI + wall * wall) / wall;
             result = currentUnit === 'imperial' ? d_mm * unitConversions.mmToIn : d_mm;
         }
@@ -680,10 +692,8 @@ function calculateReverse(silent = false) {
 
         let w_mm = 0;
         if (product === 'square') {
-            // vf = (w/10)²  →  w = 10*sqrt(vf)
             w_mm = 10 * Math.sqrt(requiredVf);
         } else if (['sheet', 'strip', 'flatbar'].includes(product)) {
-            // vf = (w/10)*(t/10)  →  w = vf*100/t
             const t = dims.t;
             if (!t) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.thickness); return; }
             w_mm = requiredVf * 100 / t;
@@ -698,7 +708,6 @@ function calculateReverse(silent = false) {
         const length = convertInputValue(parseInput("length"), 'length') * 100;
         if (!length) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.length); return; }
         const requiredVf = (targetWeightKg * 1000) / ((length / 10) * density * amount);
-        // vf = (w/10)*(t/10)  →  t = vf*100/w
         const w = dims.w;
         if (!w) { if (!silent) showCustomAlert(translations[currentLanguage].pleaseInput + ": " + L.width); return; }
         let t_mm = requiredVf * 100 / w;
@@ -715,38 +724,23 @@ function calculateReverse(silent = false) {
 
         let wall_mm = 0;
         if (product === 'pipe') {
-            // vf = π/100*(d*wall/2... use numeric solver (iterate) — wall affects both terms
-            // π*((d/2/10)² - ((d/2-wall)/10)²) = requiredVf
-            // Let R = d/2 (mm), solve: π/100*(R² - (R-wall)²) = requiredVf
-            // R² - (R-wall)² = requiredVf*100/π
-            // 2R*wall - wall² = requiredVf*100/π
-            // wall² - 2R*wall + requiredVf*100/π = 0  (quadratic in wall)
             const R = dims.d / 2;
             const C = requiredVf * 100 / Math.PI;
-            // wall = R - sqrt(R² - C)
             const discriminant = R * R - C;
             if (discriminant < 0) { if (!silent) showCustomAlert('Target weight too high for this pipe diameter.'); return; }
             wall_mm = R - Math.sqrt(discriminant);
         } else if (product === 'squarePipe') {
-            // vf = (w/10)*(h/10) - ((w-2wall)/10)*((h-2wall)/10)
-            // Expand: vf = [wh - (w-2wall)(h-2wall)] / 100
-            // = [wh - wh + 2wall*h + 2wall*w - 4wall²] / 100
-            // = [2wall(w+h) - 4wall²] / 100
-            // 4wall² - 2wall(w+h) + vf*100 = 0
             const w = dims.w, h = dims.h;
             const a = 4, b = -2 * (w + h), c = requiredVf * 100;
             const disc = b * b - 4 * a * c;
             if (disc < 0) { if (!silent) showCustomAlert('Target weight too high for these dimensions.'); return; }
-            // Take smaller root (thinner wall makes physical sense)
             wall_mm = (-b - Math.sqrt(disc)) / (2 * a);
         } else if (['channel', 'corner'].includes(product)) {
-            // These are harder to invert analytically — use binary search
             const w = dims.w, h = dims.h;
             let lo = 0.01, hi = Math.min(w, h) / 2;
             for (let i = 0; i < 60; i++) {
                 const mid = (lo + hi) / 2;
-                const testDims = { ...dims, wall: mid };
-                const testVf = computeVolumeFactor(product, testDims);
+                const testVf = computeVolumeFactor(product, { ...dims, wall: mid });
                 if (testVf < requiredVf) lo = mid; else hi = mid;
             }
             wall_mm = (lo + hi) / 2;
@@ -765,7 +759,6 @@ function calculateReverse(silent = false) {
     document.getElementById("result").innerHTML =
         `<div class="result-main">${resultLabel}: <strong>${result} ${resultUnit}</strong></div>`;
 
-    // Flash the target field and fill it in
     const targetInput = document.getElementById(fieldId);
     if (targetInput) {
         targetInput.value = result;
