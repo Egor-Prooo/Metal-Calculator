@@ -838,6 +838,7 @@ function setLanguage(lang) {
 
 function translateUI() {
     document.querySelectorAll('[data-translate]').forEach(el => {
+        if (el.id === 'calcBtn') return; // managed entirely by updateCalcButton()
         const key = el.getAttribute('data-translate');
         const tr = translations[currentLanguage]?.[key];
         if (!tr) return;
